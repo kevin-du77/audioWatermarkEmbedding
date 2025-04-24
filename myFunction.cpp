@@ -2,7 +2,7 @@
 
 // 辅助函数：将数字四舍五入到指定位数（例如：roundn(lamda, -2)）
 double roundn(double value, int n) {
-	double factor = pow(10.0, -n);
+	double factor = pow(10.0, n);
 	return round(value * factor) / factor;
 }
 
