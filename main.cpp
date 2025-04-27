@@ -150,7 +150,7 @@ vector<double> idwt(const vector<double>& a, const vector<double>& b) {
 }
 
 // 提取水印
-void extractWatermark(const vector<vector<double>>& ca2_binw,  vector<int>& w1) 
+vector<double> extractWatermark(const vector<vector<double>>& ca2_binw,  vector<int>& w1)
 {
     vector<double> dRw(Lw); // 存储重构后的比例
     w1.resize(Lw);          // 存储提取的水印
@@ -177,31 +177,10 @@ void extractWatermark(const vector<vector<double>>& ca2_binw,  vector<int>& w1)
             w1[j] = -1;
         }
     }
-    //// 输出 dRw 和 w1
-    //cout << "dRw: ";
-    //for (double val : dRw) {
-    //    cout << val << " ";
-    //}
-    //cout << endl;
-
-    //cout << "Extracted watermark (w1): ";
-    //for (int val : w1) {
-    //    cout << val << " ";
-    //}
-    //cout << endl;
-
-    //ofstream outfile("output.xls");
-    ////if (!file.is_open()) {
-    ////	cerr << "无法打开文件: " << filename << endl;
-    ////	return;
-    ////}
-    //for (size_t i = 0; i < w1.size(); i++) {
-    //    outfile << w1[i] << endl;
-    //}
-    //outfile.close();
-    //cout << "输出表格成功！" << endl;
 
     cout << endl;
+
+	return dRw;
 }
 
 double calculateBER(const vector<int>& w1, const vector<int>& w) {
@@ -217,6 +196,28 @@ double calculateBER(const vector<int>& w1, const vector<int>& w) {
 
     // 计算 BER (比特错误率)
     return dBer / Lw;
+}
+
+void plotBinRatios(const vector<double>& dR, const vector<double>& dRw, int Lw) {
+    // 创建时间序列 t
+    vector<int> t(Lw);
+    for (int i = 0; i < Lw; ++i) {
+        t[i] = i + 1;
+    }
+
+    // 输出数据到文件以便绘图
+    ofstream outFile("bin_ratios_plot_data.txt");
+    if (outFile.is_open()) {
+        outFile << "t dR dRw\n";
+        for (int i = 0; i < Lw; ++i) {
+            outFile << t[i] << " " << dR[i] << " " << dRw[i] << "\n";
+        }
+        outFile.close();
+        cout << "Plot data saved to 'bin_ratios_plot_data.txt'. Use a plotting tool to visualize it." << endl;
+    }
+    else {
+        cerr << "Error: Unable to open file for writing plot data." << endl;
+    }
 }
 
 int main()
@@ -612,12 +613,14 @@ int main()
             ca2_bin_Rebuild[i][j] = roundn(ca2_bin_Rebuild[i][j], 1);
         }
     }
-    extractWatermark(ca2_bin_Rebuild, w1);
+    vector<double> dRw = extractWatermark(ca2_bin_Rebuild, w1);
     
     // 计算 BER
     double dBer = calculateBER(w1, w);
 
     // 输出结果
     cout << "Bit Error Rate (BER): " << dBer << endl;
+
+	plotBinRatios(dR, dRw, Lw);
 	return 0;
 }
